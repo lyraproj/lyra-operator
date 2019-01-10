@@ -269,7 +269,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1d047231ca925ee522dea9f1f52afe4743272b10cd073ce4dd5b1610a4a62023"
+  digest = "1:cd56674df3949c18b5f94441f54be8d55a065b51c6df094a431a6f29a97174ca"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -278,7 +278,7 @@
     "version",
   ]
   pruneopts = "NT"
-  revision = "dd62eaa4a4f3b703f7489003dd1a862b92c247a6"
+  revision = "429c43cb724ff059557927bbb98d21f17f2e3450"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -398,7 +398,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:58189b6b5ca863f5486521e81f05e7f7aef039572ead2c463c8f28f55186cbbf"
+  digest = "1:ed22825de8992a1b90d6550ec7ce74745565b65ba974f92f1e7b394c5f220973"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -409,7 +409,7 @@
     "idna",
   ]
   pruneopts = "NT"
-  revision = "be1c187aa6c66b9daa1d9461c228d17e9dd2cab7"
+  revision = "915654e7eabcea33ae277abbecf52f0d8b7a9fdc"
 
 [[projects]]
   branch = "master"
@@ -423,7 +423,7 @@
     "jwt",
   ]
   pruneopts = "NT"
-  revision = "d668ce993890a79bda886613ee587a69dd5da7a6"
+  revision = "fd3eaa146cbb5c89ce187c275fb79bd3a36a5ffc"
 
 [[projects]]
   branch = "master"
@@ -470,7 +470,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b5c0dffbf1108dfd6b1d8503774607411a63faec341d319b5ac3c69b798dceb1"
+  digest = "1:6fe65f6df5b27ce09022caa9137b599c722914db99294d532d9ab2fbbd8ecc67"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -486,7 +486,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "aa033095749b3c5414cb40cb5fb235173be6b186"
+  revision = "68c5ac90f574c3cf0e181d3cdde7cc60cb38fa9b"
 
 [[projects]]
   digest = "1:902ffa11f1d8c19c12b05cabffe69e1a16608ad03a8899ebcb9c6bde295660ae"
@@ -684,6 +684,7 @@
     "util/integer",
     "util/jsonpath",
     "util/retry",
+    "util/workqueue",
   ]
   pruneopts = "NT"
   revision = "d082d5923d3cc0bfbb066ee5fbdea3d0ca79acf8"
@@ -769,15 +770,25 @@
     "pkg/client",
     "pkg/client/apiutil",
     "pkg/client/config",
+    "pkg/controller",
+    "pkg/event",
+    "pkg/handler",
+    "pkg/internal/controller",
+    "pkg/internal/controller/metrics",
     "pkg/internal/recorder",
     "pkg/leaderelection",
     "pkg/manager",
     "pkg/metrics",
     "pkg/patch",
+    "pkg/predicate",
+    "pkg/reconcile",
     "pkg/recorder",
     "pkg/runtime/inject",
     "pkg/runtime/log",
+    "pkg/runtime/scheme",
     "pkg/runtime/signals",
+    "pkg/source",
+    "pkg/source/internal",
     "pkg/webhook/admission",
     "pkg/webhook/admission/types",
     "pkg/webhook/types",
@@ -794,7 +805,11 @@
     "github.com/operator-framework/operator-sdk/pkg/leader",
     "github.com/operator-framework/operator-sdk/pkg/ready",
     "github.com/operator-framework/operator-sdk/version",
+    "k8s.io/api/core/v1",
+    "k8s.io/apimachinery/pkg/api/errors",
+    "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime",
+    "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/code-generator/cmd/client-gen",
     "k8s.io/code-generator/cmd/conversion-gen",
@@ -804,10 +819,16 @@
     "k8s.io/code-generator/cmd/lister-gen",
     "k8s.io/code-generator/cmd/openapi-gen",
     "k8s.io/gengo/args",
+    "sigs.k8s.io/controller-runtime/pkg/client",
     "sigs.k8s.io/controller-runtime/pkg/client/config",
+    "sigs.k8s.io/controller-runtime/pkg/controller",
+    "sigs.k8s.io/controller-runtime/pkg/handler",
     "sigs.k8s.io/controller-runtime/pkg/manager",
+    "sigs.k8s.io/controller-runtime/pkg/reconcile",
     "sigs.k8s.io/controller-runtime/pkg/runtime/log",
+    "sigs.k8s.io/controller-runtime/pkg/runtime/scheme",
     "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
+    "sigs.k8s.io/controller-runtime/pkg/source",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
