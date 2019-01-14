@@ -6,6 +6,10 @@ Unlike most Lyra repos, this project doesn't (and won't) support Go modules so y
 
     export GO111MODULE=off
 
+Before first time use, you need to install the Workflow CRD:
+
+    kubectl create -f deploy/crds/lyra_v1alpha1_workflow_crd.yaml
+
 You can run the operator directly from this repo like this:
 
     operator-sdk up local --namespace=default
