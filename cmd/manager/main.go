@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"runtime"
 
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/lyraproj/lyra-operator/cmd/manager/controller"
+	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
