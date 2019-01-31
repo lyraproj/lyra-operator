@@ -25,6 +25,10 @@ func (*mockApplicator) ApplyWorkflowWithHieraData(workflowName string, data map[
 	// Mock Applicator is not really applying the workflow ...
 }
 
+func (*mockApplicator) DeleteWorkflowWithHieraData(workflowName string, data map[string]string) {
+	// Mock Applicator is not really doing anything ...
+}
+
 func main() {
 	flag.Parse()
 
