@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -118,7 +119,7 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	workflowName := instance.Spec.WorkflowName
-	reqLogger = reqLogger.WithValues("WorkflowName", workflowName)
+	reqLogger = reqLogger.WithValues("WorkflowName", workflowName, "status", instance.Status)
 	data := instance.Spec.Data
 	refreshTime := time.Duration(instance.Spec.RefreshTime) * time.Second
 
@@ -133,12 +134,20 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 			requeue := false
 			func() {
 				defer func() {
-					if r := recover(); r != nil {
+					if rec := recover(); r != nil {
 						if feelingLucky() {
-							reqLogger.Info("We recovered from a panic whilst deleting the workflow. We decided to requeue", "cause-of-panic", r)
+							reqLogger.Info("We recovered from a panic whilst deleting the workflow. We decided to requeue", "cause-of-panic", rec)
+							instance.Status.Code = lyrav1alpha1.RetryingDelete
 							requeue = true
 						} else {
-							reqLogger.Info("We recovered from a panic whilst deleting the workflow. We decided (random circuit breaker) NOT to requeue", "cause-of-panic", r)
+							reqLogger.Info("We recovered from a panic whilst deleting the workflow. We decided (random circuit breaker) NOT to requeue", "cause-of-panic", rec)
+							instance.Status.Code = lyrav1alpha1.FailedDelete
+						}
+						instance.Status.Info = fmt.Sprintf("%v", rec)
+						reqLogger.Info("setting values", "instance.Status.Status", instance.Status.Code, "instance.Status.Info", instance.Status.Info)
+						err := r.client.Status().Update(context.TODO(), instance)
+						if err != nil {
+							reqLogger.Error(err, "Failed to update Workflow status for deletion failure")
 						}
 					}
 				}()
@@ -167,12 +176,28 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 	requeue := false
 	func() {
 		defer func() {
-			if r := recover(); r != nil {
-				reqLogger.Info("We recovered a failure applying the workflow", "cause-of-panic", r)
+			if rec := recover(); rec != nil {
+				reqLogger.Info("We recovered a failure applying the workflow", "cause-of-panic", rec)
+				instance.Status.Code = lyrav1alpha1.RetryingApply
+				instance.Status.Info = fmt.Sprintf("%v", rec)
+				err := r.client.Status().Update(context.TODO(), instance)
+				if err != nil {
+					reqLogger.Error(err, "Failed to update Workflow status to RetryingApply")
+				}
 				requeue = true
 			}
 		}()
 		r.applicator.ApplyWorkflowWithHieraData(workflowName, data)
+		success := lyrav1alpha1.Success
+		if refreshTime != 0 {
+			success = lyrav1alpha1.SuccessLooping
+		}
+		instance.Status.Code = success
+		instance.Status.Info = fmt.Sprintf("Success.  Will reapply after refreshTime (%v)", refreshTime)
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update Workflow status to Success")
+		}
 	}()
 
 	reqLogger.Info("Controller has completed applying workflow...", "requeue", requeue)
