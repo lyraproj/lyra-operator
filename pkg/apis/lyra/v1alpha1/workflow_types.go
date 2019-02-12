@@ -4,6 +4,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	//NotSet -
+	NotSet = "NotSet"
+	//Success -
+	Success = "Success"
+	//RetryingApply -
+	RetryingApply = "RetryingApply"
+	//RetryingDelete -
+	RetryingDelete = "RetryingDelete"
+	//FailedApply -
+	FailedApply = "FailedApply"
+	//FailedDelete -
+	FailedDelete = "FailedDelete"
+	//SuccessLooping -
+	SuccessLooping = "SuccessLooping"
+)
+
 ////////////////////////////////////////////////////////////////
 //
 // NOTE
@@ -23,6 +40,8 @@ type WorkflowSpec struct {
 
 // WorkflowStatus defines the observed state of Workflow
 type WorkflowStatus struct {
+	Code string
+	Info string
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
