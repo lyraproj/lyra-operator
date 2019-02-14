@@ -19,6 +19,10 @@ const (
 	FailedDelete = "FailedDelete"
 	//SuccessLooping -
 	SuccessLooping = "SuccessLooping"
+	//Applying -
+	Applying = "Applying"
+	//Deleting -
+	Deleting = "Deleting"
 )
 
 ////////////////////////////////////////////////////////////////

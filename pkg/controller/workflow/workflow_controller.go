@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"math/rand"
 	"time"
 
@@ -105,7 +106,10 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	reqLogger = reqLogger.WithValues("instance", instance)
+	workflowName := instance.Spec.WorkflowName
+	reqLogger = reqLogger.WithValues("WorkflowName", workflowName)
+	data := instance.Spec.Data
+	refreshTime := time.Duration(instance.Spec.RefreshTime) * time.Second
 
 	//Ensure that our finalizer is present, and error out if not present
 	if !containsString(instance.ObjectMeta.Finalizers, finalizerName) {
@@ -118,46 +122,35 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 		reqLogger.Info("Added our finalizer to the list", "finalizers", instance.ObjectMeta.Finalizers)
 	}
 
-	workflowName := instance.Spec.WorkflowName
-	reqLogger = reqLogger.WithValues("WorkflowName", workflowName, "status", instance.Status)
-	data := instance.Spec.Data
-	refreshTime := time.Duration(instance.Spec.RefreshTime) * time.Second
-
 	//This is a Delete: delete the workflow resources and do not requeue if successful
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		reqLogger.WithValues("finalizers", instance.ObjectMeta.Finalizers).Info("The object is being deleted, let's check the finalizers")
 		if containsString(instance.ObjectMeta.Finalizers, finalizerName) {
-
-			reqLogger.Info("Controller will delete workflow ...", "data", data)
+			r.updateStatus(reqLogger, instance, lyrav1alpha1.Deleting, "")
 
 			//attempt to delete but recover from panics
 			requeue := false
 			func() {
 				defer func() {
 					if rec := recover(); r != nil {
+						code := lyrav1alpha1.FailedDelete
 						if feelingLucky() {
-							reqLogger.Info("We recovered from a panic whilst deleting the workflow. We decided to requeue", "cause-of-panic", rec)
-							instance.Status.Code = lyrav1alpha1.RetryingDelete
 							requeue = true
-						} else {
-							reqLogger.Info("We recovered from a panic whilst deleting the workflow. We decided (random circuit breaker) NOT to requeue", "cause-of-panic", rec)
-							instance.Status.Code = lyrav1alpha1.FailedDelete
+							code = lyrav1alpha1.RetryingDelete
 						}
-						instance.Status.Info = fmt.Sprintf("%v", rec)
-						reqLogger.Info("setting values", "instance.Status.Status", instance.Status.Code, "instance.Status.Info", instance.Status.Info)
-						err := r.client.Status().Update(context.TODO(), instance)
-						if err != nil {
-							reqLogger.Error(err, "Failed to update Workflow status for deletion failure")
-						}
+						r.updateStatus(reqLogger, instance, code, rec)
 					}
 				}()
 				r.applicator.DeleteWorkflowWithHieraData(workflowName, data)
+				//the CRD no longer exists so there is no need to try to update its status
+				reqLogger.Info("Deleted workflow", "data", data)
 			}()
+
+			//we have decided to requeue and try again, so leave finalizer in place
 			if requeue {
 				return reconcile.Result{Requeue: true}, nil
 			}
 
-			reqLogger.Info("Deleted workflow", "data", data)
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, finalizerName)
 			if err := r.client.Update(context.Background(), instance); err != nil {
 				reqLogger.Info("Something went wrong attempting to remove our finalizer, will exit and requeue", "err", err)
@@ -170,34 +163,25 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, nil
 	}
 
-	reqLogger.Info("Controller will apply workflow ...", "data", data, "refreshTime", refreshTime)
+	r.updateStatus(reqLogger, instance, lyrav1alpha1.Applying, "")
 
-	//attempt to delete but recover from panics
+	//attempt to APPLY but recover from panics
 	requeue := false
 	func() {
 		defer func() {
 			if rec := recover(); rec != nil {
-				reqLogger.Info("We recovered a failure applying the workflow", "cause-of-panic", rec)
-				instance.Status.Code = lyrav1alpha1.RetryingApply
-				instance.Status.Info = fmt.Sprintf("%v", rec)
-				err := r.client.Status().Update(context.TODO(), instance)
-				if err != nil {
-					reqLogger.Error(err, "Failed to update Workflow status to RetryingApply")
-				}
+				r.updateStatus(reqLogger, instance, lyrav1alpha1.RetryingApply, rec)
 				requeue = true
 			}
 		}()
 		r.applicator.ApplyWorkflowWithHieraData(workflowName, data)
+		msg := fmt.Sprintf("Success.  No RefreshTime so complete.")
 		success := lyrav1alpha1.Success
 		if refreshTime != 0 {
+			msg = fmt.Sprintf("Success.  Will reapply after refreshTime (%v)", refreshTime)
 			success = lyrav1alpha1.SuccessLooping
 		}
-		instance.Status.Code = success
-		instance.Status.Info = fmt.Sprintf("Success.  Will reapply after refreshTime (%v)", refreshTime)
-		err := r.client.Status().Update(context.TODO(), instance)
-		if err != nil {
-			reqLogger.Error(err, "Failed to update Workflow status to Success")
-		}
+		r.updateStatus(reqLogger, instance, success, msg)
 	}()
 
 	reqLogger.Info("Controller has completed applying workflow...", "requeue", requeue)
@@ -206,6 +190,18 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, nil
 	}
 	return reconcile.Result{RequeueAfter: refreshTime}, nil
+}
+func (r *ReconcileWorkflow) updateStatus(logger logr.Logger, instance *lyrav1alpha1.Workflow, code string, info interface{}) error {
+	instance.Status.Code = code
+	instance.Status.Info = fmt.Sprintf("%v", info)
+	err := r.client.Status().Update(context.TODO(), instance)
+	if err != nil {
+		logger.Error(err, "Failed to update Workflow status", "code", code, "info", info)
+	} else {
+		logger.Info("Workflow Status Updated", "code", code, "info", info)
+	}
+
+	return err
 }
 
 // Returns (randomly) true in roughly 80% of cases, and false in roughly 20%
