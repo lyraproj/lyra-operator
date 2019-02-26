@@ -8,4 +8,4 @@ spec:
     foo: kubeFooooo
     bar: kubeBaaaar
     baz: kubeBaaaaz
-  refreshTime: 10
+  refreshTime: 120

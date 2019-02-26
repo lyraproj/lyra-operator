@@ -15,14 +15,19 @@ spec:
       serviceAccountName: lyra-operator
       containers:
         - name: lyra-operator
-          # Replace this with the built image name
-          image: lyra-operator:latest
+          image: lyraproj/lyra-operator
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "64m"
+            limits:
+              memory: "256Mi"
+              cpu: "128m"          
           ports:
           - containerPort: 60000
             name: metrics
-          command:
-          - lyra-operator
-          imagePullPolicy: Always
+          command: ["lyra", "controller", "--debug"]
+          imagePullPolicy: Never
           readinessProbe:
             exec:
               command:
@@ -41,4 +46,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "lyra-operator"
+              value: lyra
