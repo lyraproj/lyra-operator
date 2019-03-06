@@ -126,7 +126,6 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		reqLogger.WithValues("finalizers", instance.ObjectMeta.Finalizers).Info("The object is being deleted, let's check the finalizers")
 		if containsString(instance.ObjectMeta.Finalizers, finalizerName) {
-			r.updateStatus(reqLogger, instance, lyrav1alpha1.Deleting, "")
 
 			//attempt to delete but recover from panics
 			requeue := false
@@ -162,8 +161,6 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 		reqLogger.Info("A deletion event happened but our finalizer was not present", "finalizers", instance.ObjectMeta.Finalizers, "")
 		return reconcile.Result{}, nil
 	}
-
-	r.updateStatus(reqLogger, instance, lyrav1alpha1.Applying, "")
 
 	//attempt to APPLY but recover from panics
 	requeue := false
