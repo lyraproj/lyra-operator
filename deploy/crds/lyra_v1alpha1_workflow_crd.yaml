@@ -42,5 +42,5 @@ spec:
               type: "string"
             refreshTime:
               type: "integer"
-              minimum: 1
-              maximum: 60  
+              minimum: 30
+              maximum: 6000
