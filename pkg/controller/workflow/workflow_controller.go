@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"math/rand"
+	"runtime/debug"
 	"time"
 
 	lyrav1alpha1 "github.com/lyraproj/lyra-operator/pkg/apis/lyra/v1alpha1"
@@ -167,6 +168,8 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 	func() {
 		defer func() {
 			if rec := recover(); rec != nil {
+				s := string(debug.Stack())
+				reqLogger.Info("recovered panic", "rec", rec, "stack trace", s)
 				r.updateStatus(reqLogger, instance, lyrav1alpha1.RetryingApply, rec)
 				requeue = true
 			}
