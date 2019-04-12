@@ -3,9 +3,7 @@ kind: Workflow
 metadata:
   name: sample2-workflow
 spec:
-  workflowName: sample2
+  workflowName: foobernetes
   data:
-    foo: kubeFooooo
-    bar: kubeBaaaar
-    baz: kubeBaaaaz
+    foobernetes.lb_policy: rr
   refreshTime: 120
