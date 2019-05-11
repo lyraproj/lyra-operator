@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"github.com/lyraproj/lyra/pkg/apply"
 	"fmt"
 	"github.com/go-logr/logr"
 	"math/rand"
@@ -27,22 +28,14 @@ const (
 	finalizerName = "workflow.finalizers.lyra.org"
 )
 
-// Applicator abstracts over workflow application and deletion
-type Applicator interface {
-	ApplyWorkflowWithHieraData(workflowName string, data map[string]string)
-
-	//DeleteWorkflowWithHieraData calls the delete on the workflow in lyra, meaning that resources will be destroyed, if applicable
-	DeleteWorkflowWithHieraData(workflowName string, data map[string]string)
-}
-
 // Add creates a new Workflow Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager, applicator Applicator) error {
+func Add(mgr manager.Manager, applicator apply.Applicator) error {
 	return add(mgr, newReconciler(mgr, applicator))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager, applicator Applicator) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, applicator apply.Applicator) reconcile.Reconciler {
 	return &ReconcileWorkflow{
 		client:     mgr.GetClient(),
 		scheme:     mgr.GetScheme(),
@@ -85,7 +78,7 @@ type ReconcileWorkflow struct {
 	// that reads objects from the cache and writes to the apiserver
 	client     client.Client
 	scheme     *runtime.Scheme
-	applicator Applicator
+	applicator apply.Applicator
 }
 
 // Reconcile reads that state of the cluster for a Workflow object and makes changes based on the state read

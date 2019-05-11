@@ -1,5 +1,5 @@
-go.mod
-go.sum
+/go.mod
+/go.sum
 
 # Temporary Build Files
 build/_output
@@ -78,3 +78,6 @@ tags
 .vscode/*
 .history
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
+
+### Jetbrains ###
+/.idea/

@@ -11,6 +11,19 @@ required = [
 ]
 
 [[override]]
+  name = "github.com/lyraproj/lyra"
+  source = "github.com/thallgren/lyra"
+  branch = "remove-operator"
+
+[[override]]
+  name = "github.com/lyraproj/issue"
+  branch = "master"
+
+[[override]]
+  name = "github.com/lyraproj/pcore"
+  branch = "master"
+
+[[override]]
   name = "k8s.io/code-generator"
   # revision for tag "kubernetes-1.12.3"
   revision = "3dcf91f64f638563e5106f21f50c31fa361c918d"

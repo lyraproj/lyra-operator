@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"github.com/lyraproj/lyra/pkg/apply"
 
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/ready"
@@ -14,7 +15,7 @@ import (
 )
 
 // Start the Kubernetes controller running
-func Start(namespace string, applicator workflow.Applicator) error {
+func Start(namespace string, applicator apply.Applicator) error {
 
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()

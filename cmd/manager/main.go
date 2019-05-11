@@ -21,8 +21,18 @@ func printVersion() {
 
 type mockApplicator struct{}
 
+func (*mockApplicator) ApplyWorkflow(workflowName string) (exitCode int) {
+	// Mock Applicator is not really applying the workflow ...
+	return 0
+}
+
 func (*mockApplicator) ApplyWorkflowWithHieraData(workflowName string, data map[string]string) {
 	// Mock Applicator is not really applying the workflow ...
+}
+
+func (*mockApplicator) DeleteWorkflow(workflowName string) (exitCode int) {
+	// Mock Applicator is not really applying the workflow ...
+	return 0
 }
 
 func (*mockApplicator) DeleteWorkflowWithHieraData(workflowName string, data map[string]string) {
