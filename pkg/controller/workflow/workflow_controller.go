@@ -3,10 +3,11 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
 	"math/rand"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-logr/logr"
 
 	lyrav1alpha1 "github.com/lyraproj/lyra-operator/pkg/apis/lyra/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -138,7 +139,7 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 							requeue = true
 							code = lyrav1alpha1.RetryingDelete
 						}
-						r.updateStatus(reqLogger, instance, code, rec)
+						_ = r.updateStatus(reqLogger, instance, code, rec)
 					}
 				}()
 				r.applicator.DeleteWorkflowWithHieraData(workflowName, data)
@@ -170,7 +171,7 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 			if rec := recover(); rec != nil {
 				s := string(debug.Stack())
 				reqLogger.Info("recovered panic", "rec", rec, "stack trace", s)
-				r.updateStatus(reqLogger, instance, lyrav1alpha1.RetryingApply, rec)
+				_ = r.updateStatus(reqLogger, instance, lyrav1alpha1.RetryingApply, rec)
 				requeue = true
 			}
 		}()
@@ -181,7 +182,7 @@ func (r *ReconcileWorkflow) Reconcile(request reconcile.Request) (reconcile.Resu
 			msg = fmt.Sprintf("Success.  Will reapply after refreshTime (%v)", refreshTime)
 			success = lyrav1alpha1.SuccessLooping
 		}
-		r.updateStatus(reqLogger, instance, success, msg)
+		_ = r.updateStatus(reqLogger, instance, success, msg)
 	}()
 
 	reqLogger.Info("Controller has completed applying workflow...", "requeue", requeue)
